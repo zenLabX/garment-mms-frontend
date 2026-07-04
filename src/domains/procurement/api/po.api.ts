@@ -1,6 +1,8 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "@/domains/shared/api/axios-instance";
 import type { PagedResult, PageParams } from "@/domains/shared/components/app-table";
+// 跨 domain 只 import「keys 物件」做失效連動，不 import hooks / 元件（耦合方向規範）
+import { inventoryKeys } from "@/domains/inventory/api/inventory.api";
 import type { PoDetail, PoListItem, PoStatus } from "../model/po.model";
 
 export interface PoListParams extends PageParams {
@@ -34,8 +36,8 @@ export function usePoDetail(id: string) {
 
 /**
  * 簽核動作共用的 mutation 建構：成功後 invalidate 詳情 + 所有列表。
- * 未來儀表板/待辦上線時，在這裡加 invalidate(dashboardKeys.all)、invalidate(todoKeys.all)
- * ——跨模組連動集中宣告於此，不散落在元件裡。
+ * 跨模組連動集中宣告於此，不散落在元件裡——要盤點「核准會連動哪些畫面」，
+ * grep 這裡 invalidate 的 keys 就是全貌。未來待辦上線時同樣在這裡加 invalidate(todoKeys.all)。
  */
 function usePoAction(id: string, action: "approve" | "reject" | "withdraw") {
   const queryClient = useQueryClient();
@@ -45,6 +47,8 @@ function usePoAction(id: string, action: "approve" | "reject" | "withdraw") {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: poKeys.detail(id) });
       void queryClient.invalidateQueries({ queryKey: poKeys.lists() });
+      // 採購核准/退回改變在途量 → 庫存看板自動刷新（跨 domain 連動就這一行）
+      void queryClient.invalidateQueries({ queryKey: inventoryKeys.dashboards() });
     },
   });
 }

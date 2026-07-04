@@ -2,6 +2,25 @@
 
 > 用途：usage 分段開發的接手點。每個階段結束前更新此檔。
 
+## 2026-07-05 第二階段（三級複雜度範例頁面）
+
+### 已完成
+
+- [x] `docs/需求變動痛點與對策.md`：九大痛點 → 機制級對策 + 誠實的代價與緩解（demo 論述文件）
+- [x] 【低】material domain：列表 + 搜尋 + 新建/編輯共用表單頁（`enabled: !!id`、zod 邊界、分類對照表以 `MATERIAL_CATEGORIES` 為 zod/TS 單一來源）
+- [x] 【中】requisition domain：三步驟建單（草稿 store + 逐步 zod）、`useStockAvailability` 依賴查詢（hook 放 inventory，快取跨 domain 共享）、`useWithdrawRequisition` 樂觀更新 + 回滾（approve 刻意不樂觀，取捨寫在註解）、超領由 msw 422 把關、詳情頁含 Wanda 發料能力（canIssue）
+- [x] 【高】inventory dashboard：四卡 + 兩圖 + 低庫存表各自獨立 query、全域篩選 store、30 秒輪詢、`dataUpdatedAt` 顯示最後更新；`app/realtime-handlers.ts` 預埋 SignalR 事件→失效對照
+- [x] 跨 domain 連動：`po.api.ts` / `requisition.api.ts` 的 onSuccess invalidate `inventoryKeys`（寫入方 import 讀取方 keys，僅 keys）；`inventory.api.test.tsx` 有可執行證明（核准 PO → 在途量 +600）
+- [x] msw：material-data / requisition-data / inventory-data（看板讀模型**從 poDb/reqDb/materialDb 派生**，核准/發料會真的改變看板數字）；menu 四個項目；路由共 10 條
+- [x] 各 domain README 改寫為指向實例；README.md 增補三級示範腳本與模式對照
+- [x] 測試 37 綠（po 7 + material 10 + requisition 15 + inventory 5）；build / lint 通過
+
+### 本階段之後的注意事項
+
+- 圖表雙系列用色：`token.colorPrimary` + `token.colorWarningActive`（CVD 安全對，經 dataviz validator 驗證）；新增系列時維持固定順序，不要循環配色。
+- 看板即時性升級路徑寫在 `src/app/realtime-handlers.ts` 檔頭註解：換 SignalR 實作 + 移除 `DASHBOARD_REFETCH_MS`，其餘零改動。
+- stocktake / vendor 仍為空骨架，照抄 material（簡單 CRUD）或 requisition（含簽核流）即可。
+
 ## 2026-07-04 第一階段（骨架建立）
 
 ### 已完成
