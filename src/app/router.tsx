@@ -7,6 +7,7 @@ import { MaterialFormPage } from "@/domains/material/pages/material-form-page";
 import { RequisitionListPage } from "@/domains/requisition/pages/requisition-list-page";
 import { RequisitionCreatePage } from "@/domains/requisition/pages/requisition-create-page";
 import { RequisitionDetailPage } from "@/domains/requisition/pages/requisition-detail-page";
+import { InventoryDashboardPage } from "@/domains/inventory/pages/inventory-dashboard-page";
 
 export const router = createBrowserRouter([
   {
@@ -21,6 +22,7 @@ export const router = createBrowserRouter([
       { path: "/requisition/requisitions", element: <RequisitionListPage /> },
       { path: "/requisition/requisitions/new", element: <RequisitionCreatePage /> },
       { path: "/requisition/requisitions/:id", element: <RequisitionDetailPage /> },
+      { path: "/inventory/dashboard", element: <InventoryDashboardPage /> },
     ],
   },
 ]);

@@ -1,11 +1,18 @@
 import { http, HttpResponse } from "msw";
 import type { PoStatus } from "@/domains/procurement/model/po.model";
-import type { MaterialFormValues } from "@/domains/material/model/material.model";
+import type { MaterialCategory, MaterialFormValues } from "@/domains/material/model/material.model";
 import type { ReqDraftValues, ReqStatus } from "@/domains/requisition/model/requisition.model";
 import { getDemoUserId } from "./demo-user";
 import { poDb, toDetailDto, USERS } from "./data";
 import { materialDb, nextMaterialId } from "./material-data";
-import { adjustOnHand, computeAvailability } from "./inventory-data";
+import {
+  adjustOnHand,
+  computeAvailability,
+  computeCategoryStock,
+  computeInboundTrend,
+  computeLowStock,
+  computeSummary,
+} from "./inventory-data";
 import { nextReqIdentity, reqDb, toReqDetailDto } from "./requisition-data";
 
 const API = "/api";
@@ -30,6 +37,7 @@ export const handlers = [
       { key: "/procurement/pos", label: "採購管理" },
       { key: "/material/materials", label: "物料主檔" },
       { key: "/requisition/requisitions", label: "領料申請" },
+      { key: "/inventory/dashboard", label: "庫存看板" },
     ]),
   ),
 
@@ -117,6 +125,27 @@ export const handlers = [
     return HttpResponse.json(computeAvailability(sku));
   }),
 
+  // ── inventory：看板讀模型（皆吃 warehouse / category 篩選） ─────────────
+
+  http.get(`${API}/inventory/summary`, ({ request }) =>
+    HttpResponse.json(computeSummary(dashboardFilter(request.url))),
+  ),
+
+  http.get(`${API}/inventory/by-category`, ({ request }) =>
+    HttpResponse.json(computeCategoryStock(dashboardFilter(request.url))),
+  ),
+
+  http.get(`${API}/inventory/low-stock`, ({ request }) => {
+    const url = new URL(request.url);
+    const page = Number(url.searchParams.get("page") ?? 1);
+    const pageSize = Number(url.searchParams.get("pageSize") ?? 5);
+    return HttpResponse.json(computeLowStock(dashboardFilter(request.url), page, pageSize));
+  }),
+
+  http.get(`${API}/inventory/inbound-trend`, ({ request }) =>
+    HttpResponse.json(computeInboundTrend(dashboardFilter(request.url))),
+  ),
+
   // ── requisition：領料申請 ────────────────────────────────────────────
 
   http.get(`${API}/requisitions`, ({ request }) => {
@@ -192,6 +221,14 @@ export const handlers = [
     return reqAction(String(params.id), "Issued");
   }),
 ];
+
+function dashboardFilter(requestUrl: string) {
+  const url = new URL(requestUrl);
+  return {
+    warehouse: url.searchParams.get("warehouse") ?? undefined,
+    category: (url.searchParams.get("category") ?? undefined) as MaterialCategory | undefined,
+  };
+}
 
 function reqAction(reqId: string, status: ReqStatus, reason?: string) {
   const req = reqDb.find((r) => r.id === reqId);
