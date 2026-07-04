@@ -4,6 +4,9 @@ import { PoListPage } from "@/domains/procurement/pages/po-list-page";
 import { PoDetailPage } from "@/domains/procurement/pages/po-detail-page";
 import { MaterialListPage } from "@/domains/material/pages/material-list-page";
 import { MaterialFormPage } from "@/domains/material/pages/material-form-page";
+import { RequisitionListPage } from "@/domains/requisition/pages/requisition-list-page";
+import { RequisitionCreatePage } from "@/domains/requisition/pages/requisition-create-page";
+import { RequisitionDetailPage } from "@/domains/requisition/pages/requisition-detail-page";
 
 export const router = createBrowserRouter([
   {
@@ -15,6 +18,9 @@ export const router = createBrowserRouter([
       { path: "/material/materials", element: <MaterialListPage /> },
       { path: "/material/materials/new", element: <MaterialFormPage /> },
       { path: "/material/materials/:id/edit", element: <MaterialFormPage /> },
+      { path: "/requisition/requisitions", element: <RequisitionListPage /> },
+      { path: "/requisition/requisitions/new", element: <RequisitionCreatePage /> },
+      { path: "/requisition/requisitions/:id", element: <RequisitionDetailPage /> },
     ],
   },
 ]);
